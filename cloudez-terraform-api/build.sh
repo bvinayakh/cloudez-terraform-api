@@ -5,7 +5,7 @@ region=us-west-2
 account=140199734014
 repourl=${account}.dkr.ecr.${region}.amazonaws.com
 repo=cicd-images
-service=cloudez-reporting-api
+service=cloudez-terraform-api
 
 aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${repourl}
 docker build -t ${service} .
