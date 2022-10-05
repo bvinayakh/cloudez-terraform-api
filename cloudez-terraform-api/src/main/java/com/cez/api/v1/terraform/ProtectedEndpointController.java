@@ -47,6 +47,10 @@ public class ProtectedEndpointController
 
   @Value("${terraform.executable}")
   private String terraform;
+
+  @Value("${terraform.data.home}")
+  private String tfDataDir;
+
   private String output;
 
   private JSONOM mapper = null;
@@ -62,7 +66,7 @@ public class ProtectedEndpointController
     ObjectNode section = mapper.createObjectNode();
 
     String response = null;
-    String tfDataDir = "/Users/sv/terraform-data";
+    // String tfDataDir = "/Users/sv/terraform-data";
     String exectionDirectory = tfDataDir + "/" + "exec" + new Date().getTime();
 
     setEnv("TF_DATA_DIR", exectionDirectory);
@@ -149,11 +153,12 @@ public class ProtectedEndpointController
           // copy backend.tf
           File backendTF = new File(exectionDirectory + "/backend.tf");
           org.apache.commons.io.FileUtils.copyFile(new File("terraform-resources/backend.tf"), backendTF);
-          
+
           System.out.println(request.getResource());
 
           execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " init", environmentVars);
-//          response = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " apply -destroy --target " + request.getResource(), environmentVars);
+          // response = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " apply -destroy
+          // --target " + request.getResource(), environmentVars);
         }
       }
       FileUtils.deleteDirectory(tfDirectory);
