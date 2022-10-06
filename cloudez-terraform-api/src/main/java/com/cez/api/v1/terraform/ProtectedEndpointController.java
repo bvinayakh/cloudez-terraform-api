@@ -105,7 +105,9 @@ public class ProtectedEndpointController
             // String out = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " state list",
             // environmentVars);
             response = execute(terraform + " -chdir=" + execDir + " init", environmentVars);
+            logger.debug("Init Console Out :: " + response);
             response = execute(terraform + " -chdir=" + execDir + " apply -auto-approve", environmentVars);
+            logger.debug("Apply Console Out :: " + response);
             execute(terraform + " -chdir=" + execDir + " init", environmentVars);
             String out = execute(terraform + " -chdir=" + execDir + " state list", environmentVars);
             StringTokenizer tokenizer = new StringTokenizer(out);
