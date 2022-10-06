@@ -67,9 +67,9 @@ public class ProtectedEndpointController
 
     String response = null;
     // String tfDataDir = "/Users/sv/terraform-data";
-    String exectionDirectory = tfDataDir + "/" + "exec" + new Date().getTime();
+    String execDir = tfDataDir + "/" + "exec" + new Date().getTime();
 
-    setEnv("TF_DATA_DIR", exectionDirectory);
+    setEnv("TF_DATA_DIR", execDir);
     Map<String, String> environmentVars = new HashMap<>();
     environmentVars = System.getenv();
 
@@ -78,7 +78,7 @@ public class ProtectedEndpointController
     RequestObject request = (RequestObject) jsonRequest.getContent();
     try
     {
-      File tfDirectory = new File(exectionDirectory);
+      File tfDirectory = new File(execDir);
       Boolean isDirectory = tfDirectory.mkdir();
       List<String> logicalResources = new ArrayList<>();
 
@@ -88,19 +88,26 @@ public class ProtectedEndpointController
         if (jsonRequest.getOperation().equalsIgnoreCase("apply"))
         {
           // create main.tf
-          File mainTF = new File(exectionDirectory + "/main.tf");
+          File mainTF = new File(execDir + "/main.tf");
           FileWriter fileWriter = new FileWriter(mainTF);
           fileWriter.write(request.getScript());
           fileWriter.close();
           // copy backend.tf
-          File backendTF = new File(exectionDirectory + "/backend.tf");
+          File backendTF = new File(execDir + "/backend.tf");
           org.apache.commons.io.FileUtils.copyFile(new File("terraform-resources/backend.tf"), backendTF);
           if (mainTF.exists())
           {
-            response = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " init", environmentVars);
-            response = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " apply -auto-approve", environmentVars);
-            execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " init", environmentVars);
-            String out = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " state list", environmentVars);
+            // response = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " init",
+            // environmentVars);
+            // response = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " apply
+            // -auto-approve", environmentVars);
+            // execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " init", environmentVars);
+            // String out = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " state list",
+            // environmentVars);
+            response = execute(terraform + " -chdir=" + execDir + " init", environmentVars);
+            response = execute(terraform + " -chdir=" + execDir + " apply -auto-approve", environmentVars);
+            execute(terraform + " -chdir=" + execDir + " init", environmentVars);
+            String out = execute(terraform + " -chdir=" + execDir + " state list", environmentVars);
             StringTokenizer tokenizer = new StringTokenizer(out);
             while (tokenizer.hasMoreTokens())
             {
@@ -132,9 +139,9 @@ public class ProtectedEndpointController
 
     String response = null;
     String tfDataDir = "/Users/sv/terraform-data";
-    String exectionDirectory = tfDataDir + "/" + "exec" + new Date().getTime();
+    String execDir = tfDataDir + "/" + "exec" + new Date().getTime();
 
-    setEnv("TF_DATA_DIR", exectionDirectory);
+    setEnv("TF_DATA_DIR", execDir);
     Map<String, String> environmentVars = new HashMap<>();
     environmentVars = System.getenv();
 
@@ -143,7 +150,7 @@ public class ProtectedEndpointController
     RequestObject request = (RequestObject) jsonRequest.getContent();
     try
     {
-      File tfDirectory = new File(exectionDirectory);
+      File tfDirectory = new File(execDir);
       Boolean isDirectory = tfDirectory.mkdir();
 
       if (isDirectory)
@@ -151,12 +158,12 @@ public class ProtectedEndpointController
         if (jsonRequest.getOperation().equalsIgnoreCase("destroy"))
         {
           // copy backend.tf
-          File backendTF = new File(exectionDirectory + "/backend.tf");
+          File backendTF = new File(execDir + "/backend.tf");
           org.apache.commons.io.FileUtils.copyFile(new File("terraform-resources/backend.tf"), backendTF);
 
           System.out.println(request.getResource());
 
-          execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " init", environmentVars);
+          execute(terraform + " -chdir=" + execDir + " init", environmentVars);
           // response = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " apply -destroy
           // --target " + request.getResource(), environmentVars);
         }
