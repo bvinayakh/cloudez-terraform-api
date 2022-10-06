@@ -97,11 +97,11 @@ public class ProtectedEndpointController
           org.apache.commons.io.FileUtils.copyFile(new File("terraform-resources/backend.tf"), backendTF);
           if (mainTF.exists())
           {
-            response = execute(terraform + " -chdir=" + execDir + " -lock=false " + " init", environmentVars);
+            response = execute(terraform + " -chdir=" + execDir + " init", environmentVars);
             logger.debug("Init Console Out :: " + response);
-            response = execute(terraform + " -chdir=" + execDir + " -lock=false " + " apply -auto-approve", environmentVars);
+            response = execute(terraform + " -chdir=" + execDir + " apply -auto-approve", environmentVars);
             logger.debug("Apply Console Out :: " + response);
-            execute(terraform + " -chdir=" + execDir + " -lock=false " + " init", environmentVars);
+            execute(terraform + " -chdir=" + execDir + " init", environmentVars);
             String out = execute(terraform + " -chdir=" + execDir + " state list", environmentVars);
             StringTokenizer tokenizer = new StringTokenizer(out);
             while (tokenizer.hasMoreTokens())
