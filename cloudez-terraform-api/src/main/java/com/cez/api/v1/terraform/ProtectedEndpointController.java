@@ -102,7 +102,7 @@ public class ProtectedEndpointController
             response = execute(terraform + " -chdir=" + execDir + " -lock=false " + " apply -auto-approve", environmentVars);
             logger.debug("Apply Console Out :: " + response);
             execute(terraform + " -chdir=" + execDir + " -lock=false " + " init", environmentVars);
-            String out = execute(terraform + " -chdir=" + execDir + " -lock=false " + " state list", environmentVars);
+            String out = execute(terraform + " -chdir=" + execDir + " state list", environmentVars);
             StringTokenizer tokenizer = new StringTokenizer(out);
             while (tokenizer.hasMoreTokens())
             {
