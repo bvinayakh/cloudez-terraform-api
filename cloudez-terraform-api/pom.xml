@@ -13,7 +13,7 @@
 	<artifactId>cloudez-terraform-api</artifactId>
 	<version>1.0</version>
 	<name>cloudez-terraform-api</name>
-	<description>Demo project for Spring Boot</description>
+	<description>cloudez api for terraform</description>
 	<properties>
 		<java.version>1.8</java.version>
 	</properties>
