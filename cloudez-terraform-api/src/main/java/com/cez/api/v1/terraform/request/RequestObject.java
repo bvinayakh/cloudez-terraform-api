@@ -21,6 +21,11 @@ public class RequestObject
     return new String(Base64Utils.decodeFromString(this.script));
   }
 
+  public String getEncodedScript()
+  {
+    return this.script;
+  }
+
   public String getResource()
   {
     return resource;

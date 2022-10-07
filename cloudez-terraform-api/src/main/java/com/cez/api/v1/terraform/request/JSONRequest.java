@@ -48,9 +48,24 @@ public class JSONRequest
     return rootNode.get("request").get("metadata").get("account").asText();
   }
 
-  public String getOperation()
+  public String getDeploymentName()
   {
-    return rootNode.get("request").get("parameters").get("operation").asText();
+    return rootNode.get("request").get("parameters").get("name").asText();
+  }
+
+  public String getDeploymentDescription()
+  {
+    return rootNode.get("request").get("parameters").get("description").asText();
+  }
+
+  public String getDeploymentOwner()
+  {
+    return rootNode.get("request").get("parameters").get("owner").asText();
+  }
+
+  public String getRegion()
+  {
+    return rootNode.get("request").get("metadata").get("region").asText();
   }
 
   public Object getContent()

@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -25,15 +27,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.cez.api.v1.terraform.request.JSONOM;
 import com.cez.api.v1.terraform.request.JSONRequest;
 import com.cez.api.v1.terraform.request.JSONResponse;
 import com.cez.api.v1.terraform.request.RequestObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @RestController
@@ -51,12 +58,117 @@ public class ProtectedEndpointController
   @Value("${terraform.data.home}")
   private String tfDataDir;
 
+  @Autowired
+  private TerraformScriptRepository dbRepo;
+
   private String output;
 
   private JSONOM mapper = null;
   private ObjectNode parentNode = null;
   private JSONRequest jsonRequest = null;
   private JSONResponse jsonResponse = null;
+
+  @GetMapping("/script")
+  public String scriptList(@RequestParam String owner)
+  {
+    String response = null;
+    mapper = new JSONOM();
+    ObjectNode parentNode = mapper.createObjectNode();
+    List<TerraformScript> scriptsList = dbRepo.findAll();
+    Iterator<TerraformScript> iterator = scriptsList.iterator();
+    ArrayNode scripts = mapper.createArrayNode();
+    while (iterator.hasNext())
+    {
+      TerraformScript script = iterator.next();
+      if (script.getDeploymentOwner().equalsIgnoreCase(owner));
+      {
+        ObjectNode content = mapper.createObjectNode();
+        content.putPOJO("encoded-script", script.getTfScript());
+        content.putPOJO("owner", script.getDeploymentOwner());
+        content.putPOJO("name", script.getDeploymentName());
+        content.putPOJO("status", script.getDeploymentStatus());
+        content.putPOJO("description", script.getDeploymentDescription());
+        content.putPOJO("created", script.getCreatedOn());
+        scripts.add(content);
+      }
+    }
+    parentNode.putPOJO("scripts", scripts);
+    jsonResponse = new JSONResponse();
+    try
+    {
+      response = jsonResponse.getResponse(parentNode);
+    }
+    catch (JsonProcessingException e)
+    {
+      e.printStackTrace();
+    }
+
+    return response;
+  }
+
+  @PostMapping("/script")
+  public String scriptStore(@RequestBody String requestBody)
+  {
+    String response = null;
+    jsonRequest = new JSONRequest(requestBody);
+    RequestObject request = (RequestObject) jsonRequest.getContent();
+    if (dbRepo.findAllById(Collections.singleton(jsonRequest.getDeploymentName())).size() < 1)
+    {
+      TerraformScript script = new TerraformScript();
+      script.setTfScript(request.getEncodedScript());
+      script.setAccount(jsonRequest.getAccount());
+      script.setRegion(jsonRequest.getRegion());
+      script.setDeploymentName(jsonRequest.getDeploymentName());
+      script.setDeploymentDescription(jsonRequest.getDeploymentDescription());
+      script.setDeploymentOwner(jsonRequest.getDeploymentOwner());
+      script.setDeploymentStatus("not-executed");
+      dbRepo.save(script);
+      response = jsonRequest.getDeploymentName() + " deployment stored";
+    }
+    else
+    {
+      response = "deployment exits";
+    }
+    return response;
+  }
+
+  @PutMapping("/script")
+  public String scriptUpdate(@RequestBody String requestBody)
+  {
+    jsonRequest = new JSONRequest(requestBody);
+    String response = jsonRequest.getDeploymentName() + " not found";
+    RequestObject request = (RequestObject) jsonRequest.getContent();
+    TerraformScript script = null;
+    List<TerraformScript> list = dbRepo.findAllById(Collections.singleton(jsonRequest.getDeploymentName()));
+    Iterator<TerraformScript> iterator = list.iterator();
+    while (iterator.hasNext())
+    {
+      script = iterator.next();
+      script.setTfScript(request.getEncodedScript());
+      script.setAccount(jsonRequest.getAccount());
+      script.setRegion(jsonRequest.getRegion());
+      script.setDeploymentDescription(jsonRequest.getDeploymentDescription());
+      dbRepo.save(script);
+      response = jsonRequest.getDeploymentName() + " updated";
+    }
+    return response;
+  }
+
+  @DeleteMapping("/script")
+  public String scriptDelete(@RequestParam String id)
+  {
+    String response = id + " not found";
+    List<TerraformScript> list = dbRepo.findAllById(Collections.singleton(id));
+    Iterator<TerraformScript> iterator = list.iterator();
+    while (iterator.hasNext())
+    {
+      TerraformScript script = iterator.next();
+      dbRepo.delete(script);
+      response = "deleted";
+    }
+
+    return response;
+  }
 
   @PostMapping("/execute")
   public String execute(@RequestBody String requestBody)
@@ -66,7 +178,6 @@ public class ProtectedEndpointController
     ObjectNode section = mapper.createObjectNode();
 
     String response = null;
-    // String tfDataDir = "/Users/sv/terraform-data";
     String execDir = tfDataDir + "/" + "exec" + new Date().getTime();
 
     setEnv("TF_DATA_DIR", execDir);
@@ -84,39 +195,32 @@ public class ProtectedEndpointController
 
       if (isDirectory)
       {
-        // System.out.println(System.getenv("TF_DATA_DIR"));
-        if (jsonRequest.getOperation().equalsIgnoreCase("apply"))
+        // create main.tf
+        File mainTF = new File(execDir + "/main.tf");
+        FileWriter fileWriter = new FileWriter(mainTF);
+        fileWriter.write(request.getScript());
+        fileWriter.close();
+        // copy backend.tf
+        File backendTF = new File(execDir + "/backend.tf");
+        org.apache.commons.io.FileUtils.copyFile(new File("terraform-resources/backend.tf"), backendTF);
+        if (mainTF.exists())
         {
-          // create main.tf
-          File mainTF = new File(execDir + "/main.tf");
-          FileWriter fileWriter = new FileWriter(mainTF);
-          fileWriter.write(request.getScript());
-          fileWriter.close();
-          // copy backend.tf
-          File backendTF = new File(execDir + "/backend.tf");
-          org.apache.commons.io.FileUtils.copyFile(new File("terraform-resources/backend.tf"), backendTF);
-          if (mainTF.exists())
+          response = execute(terraform + " -chdir=" + execDir + " init", environmentVars);
+          logger.debug("Init Console Out :: " + response);
+          response = execute(terraform + " -chdir=" + execDir + " apply -auto-approve", environmentVars);
+          logger.debug("Apply Console Out :: " + response);
+          execute(terraform + " -chdir=" + execDir + " init", environmentVars);
+          String out = execute(terraform + " -chdir=" + execDir + " state list", environmentVars);
+          StringTokenizer tokenizer = new StringTokenizer(out);
+          while (tokenizer.hasMoreTokens())
           {
-            response = execute(terraform + " -chdir=" + execDir + " init", environmentVars);
-            logger.debug("Init Console Out :: " + response);
-            response = execute(terraform + " -chdir=" + execDir + " apply -auto-approve", environmentVars);
-            logger.debug("Apply Console Out :: " + response);
-            execute(terraform + " -chdir=" + execDir + " init", environmentVars);
-            String out = execute(terraform + " -chdir=" + execDir + " state list", environmentVars);
-            StringTokenizer tokenizer = new StringTokenizer(out);
-            while (tokenizer.hasMoreTokens())
-            {
-              // System.out.println(tokenizer.nextToken());
-              logicalResources.add(tokenizer.nextToken());
-            }
+            logicalResources.add(tokenizer.nextToken());
           }
         }
         FileUtils.deleteDirectory(tfDirectory);
         section.putPOJO("output", new String(Base64Utils.encode(response.getBytes())));
         section.putPOJO("logical-resource-name", logicalResources);
       }
-      // output = jsonResponse.getResponse(parentNode.putPOJO("terraform", new
-      // String(Base64Utils.encode(response.getBytes()))));
       output = jsonResponse.getResponse(parentNode.putPOJO("terraform", section));
     }
     catch (IOException | InterruptedException e)
@@ -126,7 +230,7 @@ public class ProtectedEndpointController
     return output;
   }
 
-  @DeleteMapping("/destroy")
+  @DeleteMapping("/execute")
   public String destroy(@PathVariable String requestBody)
   {
     mapper = new JSONOM();
@@ -150,18 +254,15 @@ public class ProtectedEndpointController
 
       if (isDirectory)
       {
-        if (jsonRequest.getOperation().equalsIgnoreCase("destroy"))
-        {
-          // copy backend.tf
-          File backendTF = new File(execDir + "/backend.tf");
-          org.apache.commons.io.FileUtils.copyFile(new File("terraform-resources/backend.tf"), backendTF);
+        // copy backend.tf
+        File backendTF = new File(execDir + "/backend.tf");
+        org.apache.commons.io.FileUtils.copyFile(new File("terraform-resources/backend.tf"), backendTF);
 
-          System.out.println(request.getResource());
+        System.out.println(request.getResource());
 
-          execute(terraform + " -chdir=" + execDir + " init", environmentVars);
-          // response = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " apply -destroy
-          // --target " + request.getResource(), environmentVars);
-        }
+        execute(terraform + " -chdir=" + execDir + " init", environmentVars);
+        // response = execute(terraform + " -chdir=" + System.getenv("TF_DATA_DIR") + " apply -destroy
+        // --target " + request.getResource(), environmentVars);
       }
       FileUtils.deleteDirectory(tfDirectory);
       output = jsonResponse.getResponse(parentNode.putPOJO("terraform", new String(Base64Utils.encode(response.getBytes()))));
