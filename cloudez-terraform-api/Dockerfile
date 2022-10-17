@@ -2,7 +2,7 @@
 FROM amazoncorretto
 
 RUN  yum update \
-  && yum -y install wget \
+  && yum -y install wget
 
 # Download terraform for linux
 RUN wget https://releases.hashicorp.com/terraform/1.2.9/terraform_1.2.9_linux_amd64.zip
