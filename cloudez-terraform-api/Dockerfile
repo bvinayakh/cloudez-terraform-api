@@ -1,4 +1,5 @@
-FROM openjdk:8-jdk-alpine
+#FROM openjdk:8-jdk-alpine
+FROM amazoncorretto
 
 # Download terraform for linux
 RUN wget https://releases.hashicorp.com/terraform/1.2.9/terraform_1.2.9_linux_amd64.zip

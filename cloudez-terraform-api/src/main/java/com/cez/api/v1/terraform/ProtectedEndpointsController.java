@@ -45,9 +45,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @RestController
 @RequestMapping("terraform/protected/api/v1")
-public class ProtectedEndpointController
+public class ProtectedEndpointsController
 {
-  public static final Logger logger = LoggerFactory.getLogger(ProtectedEndpointController.class);
+  public static final Logger logger = LoggerFactory.getLogger(ProtectedEndpointsController.class);
 
   @Autowired
   BuildProperties build;
