@@ -2,11 +2,13 @@ package com.cez.api.v1.terraform;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.Executor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -31,5 +33,17 @@ public class CloudezTerraformApiApplication
     FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
     bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
     return bean;
+  }
+
+  @Bean
+  public Executor taskExecutor()
+  {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(2);
+    executor.setMaxPoolSize(2);
+    executor.setQueueCapacity(500);
+    executor.setThreadNamePrefix("terraform-");
+    executor.initialize();
+    return executor;
   }
 }

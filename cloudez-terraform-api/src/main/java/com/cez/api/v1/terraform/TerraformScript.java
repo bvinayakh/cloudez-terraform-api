@@ -6,13 +6,14 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import org.springframework.util.Base64Utils;
 import com.cez.api.v1.terraform.utils.TimeUtil;
 
 @Entity
 @Table(name = "terraform_deployments")
 public class TerraformScript
 {
-  private @Column(name = "tf_script_name", nullable = false) String tfScript;
+  private @Column(name = "tf_script", nullable = false) String tfScript;
   private @Column(name = "account", nullable = false) String account;
   private @Id @Column(name = "deployment_name", nullable = false) String deploymentName;
   private @Column(name = "deployment_description", nullable = true) String deploymentDescription;
@@ -20,6 +21,7 @@ public class TerraformScript
   private @Column(name = "region", nullable = true) String region;
   private @Column(name = "deployment_status", nullable = true) String deploymentStatus;
   private @Column(name = "created_on", nullable = false) Date createdOn;
+  private @Column(name = "workspace", nullable = false) String workspace;
 
   public TerraformScript()
   {
@@ -28,7 +30,8 @@ public class TerraformScript
 
   public String getTfScript()
   {
-    return tfScript;
+    // return tfScript;
+    return new String(Base64Utils.decodeFromString(tfScript));
   }
 
   public void setTfScript(String tfScript)
@@ -99,6 +102,16 @@ public class TerraformScript
   public Date getCreatedOn()
   {
     return createdOn;
+  }
+
+  public String getWorkspace()
+  {
+    return workspace;
+  }
+
+  public void setWorkspace(String workspace)
+  {
+    this.workspace = workspace;
   }
 
   // defaults
