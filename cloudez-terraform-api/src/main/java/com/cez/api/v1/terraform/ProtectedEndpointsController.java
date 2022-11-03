@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,11 +29,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
+import com.cez.api.v1.terraform.async.TerraformApply;
+import com.cez.api.v1.terraform.async.TerraformExecutionRepository;
 import com.cez.api.v1.terraform.request.JSONOM;
 import com.cez.api.v1.terraform.request.JSONRequest;
 import com.cez.api.v1.terraform.request.JSONResponse;
 import com.cez.api.v1.terraform.request.RequestObject;
 import com.cez.api.v1.terraform.utils.Executor;
+import com.cez.api.v1.terraform.utils.TaskIdGenerator;
 import com.cez.api.v1.terraform.utils.WorkspaceUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -55,6 +60,9 @@ public class ProtectedEndpointsController
 
   @Autowired
   private TerraformScriptRepository dbRepo;
+
+  @Autowired
+  private TerraformExecutionRepository executionRepo;
 
   private String output;
 
@@ -231,10 +239,29 @@ public class ProtectedEndpointsController
     return output;
   }
 
-  @PostMapping("/test")
-  public @ResponseBody String test(@RequestBody String requestBody)
+  @PostMapping("/apply")
+  public @ResponsePayload String apply(@RequestBody String requestBody)
   {
-    return "test";
+    setEnv("TF_DATA_DIR", tfDataDir);
+    String taskId = TaskIdGenerator.getId();
+    TerraformApply runner = new TerraformApply(requestBody, tfDataDir, terraform, taskId, dbRepo, executionRepo);
+
+    new Thread(runner).start();
+
+    jsonResponse = new JSONResponse();
+    mapper = new JSONOM();
+    parentNode = mapper.createObjectNode();
+    parentNode.putPOJO("executionid", taskId);
+    try
+    {
+      output = jsonResponse.getResponse(parentNode);
+    }
+    catch (JsonProcessingException e)
+    {
+      e.printStackTrace();
+    }
+
+    return output;
   }
 
   @DeleteMapping("/destroy/id/{id}/owner/{owner}")
