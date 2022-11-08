@@ -10,7 +10,7 @@ import com.cez.api.v1.terraform.utils.TimeUtil;
 
 @Entity
 @Table(name = "terraform_executions")
-public class TerraformExecutions
+public class Deployments
 {
   private @Id @Column(name = "id", nullable = false) String id;
   private @Column(name = "status", nullable = true) String status;
@@ -23,7 +23,7 @@ public class TerraformExecutions
   private @Column(name = "created_on", nullable = true) Date createdOn;
   private @Column(name = "execution_response", nullable = true) String executionResponse;
 
-  public TerraformExecutions()
+  public Deployments()
   {
     this.createdOn = TimeUtil.getCurrentUTCDateWithTimeZone();
   }
@@ -144,8 +144,8 @@ public class TerraformExecutions
   public boolean equals(Object obj)
   {
     if (this == obj) return true;
-    if (!(obj instanceof TerraformExecutions)) return false;
-    TerraformExecutions asset = (TerraformExecutions) obj;
+    if (!(obj instanceof Deployments)) return false;
+    Deployments asset = (Deployments) obj;
     return Objects.equals(this.id, asset.id) && Objects.equals(this.executedBy, asset.executedBy);
   }
 

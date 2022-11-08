@@ -7,14 +7,14 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
-import org.springframework.stereotype.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.springframework.util.Base64Utils;
 import com.cez.api.v1.terraform.utils.TimeUtil;
 
 @Entity
 @Indexed
 @Table(name = "terraform_deployments")
-public class TerraformScript
+public class Scripts
 {
   private @Column(name = "tf_script", nullable = false) String tfScript;
   private @Column(name = "account", nullable = false) String account;
@@ -26,7 +26,7 @@ public class TerraformScript
   private @Column(name = "created_on", nullable = false) Date createdOn;
   private @Column(name = "workspace", nullable = false) String workspace;
 
-  public TerraformScript()
+  public Scripts()
   {
     this.createdOn = TimeUtil.getCurrentUTCDateWithTimeZone();
   }
@@ -122,8 +122,8 @@ public class TerraformScript
   public boolean equals(Object obj)
   {
     if (this == obj) return true;
-    if (!(obj instanceof TerraformScript)) return false;
-    TerraformScript asset = (TerraformScript) obj;
+    if (!(obj instanceof Scripts)) return false;
+    Scripts asset = (Scripts) obj;
     return Objects.equals(this.deploymentName, asset.deploymentName) && Objects.equals(this.account, asset.account);
   }
 

@@ -16,6 +16,7 @@
 	<description>cloudez api for terraform</description>
 	<properties>
 		<java.version>1.8</java.version>
+		 <hibernate.search.version>6.1.1.Final</hibernate.search.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -62,13 +63,13 @@
 		<dependency>
 			<groupId>org.hibernate.search</groupId>
 			<artifactId>hibernate-search-mapper-orm</artifactId>
-			<version>6.2.0.Alpha1</version>
+			<version>${hibernate.search.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.hibernate.search/hibernate-search-backend-lucene -->
 		<dependency>
 			<groupId>org.hibernate.search</groupId>
 			<artifactId>hibernate-search-backend-lucene</artifactId>
-			<version>6.2.0.Alpha1</version>
+			<version>${hibernate.search.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

@@ -11,10 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.StringUtils;
-import com.cez.api.v1.terraform.TerraformExecutionRepository;
-import com.cez.api.v1.terraform.TerraformExecutions;
-import com.cez.api.v1.terraform.TerraformScript;
-import com.cez.api.v1.terraform.TerraformScriptRepository;
+import com.cez.api.v1.terraform.DeploymentsRepository;
+import com.cez.api.v1.terraform.Deployments;
+import com.cez.api.v1.terraform.Scripts;
+import com.cez.api.v1.terraform.ScriptsRepository;
 import com.cez.api.v1.terraform.request.JSONOM;
 import com.cez.api.v1.terraform.request.JSONRequest;
 import com.cez.api.v1.terraform.request.JSONResponse;
@@ -33,12 +33,12 @@ public class TerraformApply implements Runnable
   private String terraform = null;
   private String taskId = null;
 
-  private TerraformScriptRepository dbRepo = null;
-  private TerraformExecutionRepository executionRepo = null;
+  private ScriptsRepository dbRepo = null;
+  private DeploymentsRepository executionRepo = null;
 
 
-  public TerraformApply(String requestBody, String tfDataDir, String terraform, String taskId, TerraformScriptRepository dbRepo,
-      TerraformExecutionRepository executionRepo)
+  public TerraformApply(String requestBody, String tfDataDir, String terraform, String taskId, ScriptsRepository dbRepo,
+      DeploymentsRepository executionRepo)
   {
     this.requestBody = requestBody;
     this.tfDataDir = tfDataDir;
@@ -58,7 +58,7 @@ public class TerraformApply implements Runnable
 
     String response = null;
 
-    TerraformExecutions execution = new TerraformExecutions();
+    Deployments execution = new Deployments();
 
     List<String> logicalResources = new ArrayList<>();
 
@@ -69,10 +69,10 @@ public class TerraformApply implements Runnable
     {
       execution.setId(taskId);
 
-      Optional<TerraformScript> optionalScript = dbRepo.findById(request.getId());
+      Optional<Scripts> optionalScript = dbRepo.findById(request.getId());
       if (optionalScript.isPresent())
       {
-        TerraformScript script = optionalScript.get();
+        Scripts script = optionalScript.get();
 
         execution.setScriptId(script.getDeploymentName());
         execution.setExecutedBy(script.getDeploymentOwner());
