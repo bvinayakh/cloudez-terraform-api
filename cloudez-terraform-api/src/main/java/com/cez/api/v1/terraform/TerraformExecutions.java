@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform.async;
+package com.cez.api.v1.terraform;
 
 import java.util.Date;
 import java.util.Objects;

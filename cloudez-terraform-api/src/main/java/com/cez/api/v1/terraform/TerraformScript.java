@@ -6,17 +6,20 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.springframework.stereotype.Indexed;
 import org.springframework.util.Base64Utils;
 import com.cez.api.v1.terraform.utils.TimeUtil;
 
 @Entity
+@Indexed
 @Table(name = "terraform_deployments")
 public class TerraformScript
 {
   private @Column(name = "tf_script", nullable = false) String tfScript;
   private @Column(name = "account", nullable = false) String account;
-  private @Id @Column(name = "deployment_name", nullable = false) String deploymentName;
-  private @Column(name = "deployment_description", nullable = true) String deploymentDescription;
+  private @Id @Column(name = "deployment_name", nullable = false) @FullTextField String deploymentName;
+  private @Column(name = "deployment_description", nullable = true) @FullTextField String deploymentDescription;
   private @Column(name = "deployment_owner", nullable = false) String deploymentOwner;
   private @Column(name = "region", nullable = true) String region;
   private @Column(name = "deployment_status", nullable = true) String deploymentStatus;

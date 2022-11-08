@@ -11,13 +11,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
-import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +29,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
 import com.cez.api.v1.terraform.async.TerraformApply;
-import com.cez.api.v1.terraform.async.TerraformExecutionRepository;
 import com.cez.api.v1.terraform.request.JSONOM;
 import com.cez.api.v1.terraform.request.JSONRequest;
 import com.cez.api.v1.terraform.request.JSONResponse;
@@ -59,10 +56,10 @@ public class ProtectedEndpointsController
   private String tfDataDir;
 
   @Autowired
-  private TerraformScriptRepository dbRepo;
+  private TerraformScriptRepository deploymentTable;
 
   @Autowired
-  private TerraformExecutionRepository executionRepo;
+  private TerraformExecutionRepository executionTable;
 
   private String output;
 
@@ -71,13 +68,17 @@ public class ProtectedEndpointsController
   private JSONRequest jsonRequest = null;
   private JSONResponse jsonResponse = null;
 
+  public ProtectedEndpointsController()
+  {
+    mapper = new JSONOM();
+  }
+
   @GetMapping("/script")
   public String scriptList(@RequestParam String owner)
   {
     String response = null;
-    mapper = new JSONOM();
     ObjectNode parentNode = mapper.createObjectNode();
-    List<TerraformScript> scriptsList = dbRepo.findAll();
+    List<TerraformScript> scriptsList = deploymentTable.findAll();
     Iterator<TerraformScript> iterator = scriptsList.iterator();
     ArrayNode scripts = mapper.createArrayNode();
     while (iterator.hasNext())
@@ -115,7 +116,7 @@ public class ProtectedEndpointsController
     String response = null;
     jsonRequest = new JSONRequest(requestBody);
     RequestObject request = (RequestObject) jsonRequest.getContent();
-    if (dbRepo.findAllById(Collections.singleton(jsonRequest.getDeploymentName())).size() < 1)
+    if (deploymentTable.findAllById(Collections.singleton(jsonRequest.getDeploymentName())).size() < 1)
     {
       TerraformScript script = new TerraformScript();
       script.setTfScript(request.getEncodedScript());
@@ -126,7 +127,7 @@ public class ProtectedEndpointsController
       script.setDeploymentOwner(jsonRequest.getDeploymentOwner());
       script.setWorkspace(jsonRequest.getDeploymentName() + "-" + jsonRequest.getDeploymentOwner());
       script.setDeploymentStatus("not-executed");
-      dbRepo.save(script);
+      deploymentTable.save(script);
       response = jsonRequest.getDeploymentName() + " deployment stored";
     }
     else
@@ -143,7 +144,7 @@ public class ProtectedEndpointsController
     String response = jsonRequest.getDeploymentName() + " not found";
     RequestObject request = (RequestObject) jsonRequest.getContent();
     TerraformScript script = null;
-    List<TerraformScript> list = dbRepo.findAllById(Collections.singleton(jsonRequest.getDeploymentName()));
+    List<TerraformScript> list = deploymentTable.findAllById(Collections.singleton(jsonRequest.getDeploymentName()));
     Iterator<TerraformScript> iterator = list.iterator();
     while (iterator.hasNext())
     {
@@ -152,7 +153,7 @@ public class ProtectedEndpointsController
       script.setAccount(jsonRequest.getAccount());
       script.setRegion(jsonRequest.getRegion());
       script.setDeploymentDescription(jsonRequest.getDeploymentDescription());
-      dbRepo.save(script);
+      deploymentTable.save(script);
       response = jsonRequest.getDeploymentName() + " updated";
     }
     return response;
@@ -162,12 +163,12 @@ public class ProtectedEndpointsController
   public String scriptDelete(@RequestParam String id)
   {
     String response = id + " not found";
-    List<TerraformScript> list = dbRepo.findAllById(Collections.singleton(id));
+    List<TerraformScript> list = deploymentTable.findAllById(Collections.singleton(id));
     Iterator<TerraformScript> iterator = list.iterator();
     while (iterator.hasNext())
     {
       TerraformScript script = iterator.next();
-      dbRepo.delete(script);
+      deploymentTable.delete(script);
       response = "deleted";
     }
 
@@ -178,7 +179,6 @@ public class ProtectedEndpointsController
   // public String execute(@RequestBody String requestBody)
   public @ResponseBody String execute(@RequestBody String requestBody)
   {
-    mapper = new JSONOM();
     parentNode = mapper.createObjectNode();
     ObjectNode section = mapper.createObjectNode();
 
@@ -192,7 +192,7 @@ public class ProtectedEndpointsController
     RequestObject request = (RequestObject) jsonRequest.getContent();
     try
     {
-      Optional<TerraformScript> optionalScript = dbRepo.findById(request.getId());
+      Optional<TerraformScript> optionalScript = deploymentTable.findById(request.getId());
       if (optionalScript.isPresent())
       {
         TerraformScript script = optionalScript.get();
@@ -244,12 +244,11 @@ public class ProtectedEndpointsController
   {
     setEnv("TF_DATA_DIR", tfDataDir);
     String taskId = TaskIdGenerator.getId();
-    TerraformApply runner = new TerraformApply(requestBody, tfDataDir, terraform, taskId, dbRepo, executionRepo);
+    TerraformApply runner = new TerraformApply(requestBody, tfDataDir, terraform, taskId, deploymentTable, executionTable);
 
     new Thread(runner).start();
 
     jsonResponse = new JSONResponse();
-    mapper = new JSONOM();
     parentNode = mapper.createObjectNode();
     parentNode.putPOJO("executionid", taskId);
     try
@@ -264,10 +263,50 @@ public class ProtectedEndpointsController
     return output;
   }
 
+  @GetMapping("/get-execution")
+  public @ResponsePayload String getExecution(@RequestParam(name = "taskid") String taskId)
+  {
+    String output = null;
+    jsonResponse = new JSONResponse();
+
+    Optional<TerraformExecutions> executionOptional = executionTable.findById(taskId);
+    TerraformExecutions execution = executionOptional.orElseGet(null);
+    ObjectNode parentNode = mapper.createObjectNode();
+    parentNode.putPOJO("id", execution.getId());
+    parentNode.putPOJO("status", execution.getStatus());
+    parentNode.putPOJO("console-output", execution.getConsoleOutput());
+    parentNode.putPOJO("executed-by", execution.getExecutedBy());
+    parentNode.putPOJO("execution-output", execution.getExecutionOutput());
+    parentNode.putPOJO("logical-resources", execution.getLogicalResources());
+    parentNode.putPOJO("script-name", execution.getScriptId());
+    parentNode.putPOJO("execution-response", execution.getExecutionResponse());
+    parentNode.putPOJO("execution-timestamp", execution.getCreatedOn());
+    try
+    {
+      output = jsonResponse.getResponse(parentNode);
+    }
+    catch (JsonProcessingException e)
+    {
+      e.printStackTrace();
+    }
+
+    return output;
+  }
+
+  @GetMapping("/search")
+  public @ResponsePayload String search(@RequestParam(name = "keyword") String keyword)
+  {
+    String output = null;
+
+    jsonResponse = new JSONResponse();
+    parentNode = mapper.createObjectNode();
+    
+    return output;
+  }
+
   @DeleteMapping("/destroy/id/{id}/owner/{owner}")
   public String destroy(@PathVariable("id") String id, @PathVariable("owner") String owner)
   {
-    mapper = new JSONOM();
     parentNode = mapper.createObjectNode();
 
     String response = null;

@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.StringUtils;
+import com.cez.api.v1.terraform.TerraformExecutionRepository;
+import com.cez.api.v1.terraform.TerraformExecutions;
 import com.cez.api.v1.terraform.TerraformScript;
 import com.cez.api.v1.terraform.TerraformScriptRepository;
 import com.cez.api.v1.terraform.request.JSONOM;
@@ -20,6 +22,7 @@ import com.cez.api.v1.terraform.request.RequestObject;
 import com.cez.api.v1.terraform.utils.Executor;
 import com.cez.api.v1.terraform.utils.WorkspaceUtils;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 
 public class TerraformApply implements Runnable
 {
