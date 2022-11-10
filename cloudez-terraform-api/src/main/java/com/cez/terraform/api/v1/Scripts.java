@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform;
+package com.cez.terraform.api.v1;
 
 import java.util.Date;
 import java.util.Objects;
@@ -9,7 +9,7 @@ import javax.persistence.Table;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
 import org.springframework.util.Base64Utils;
-import com.cez.api.v1.terraform.utils.TimeUtil;
+import com.cez.terraform.api.v1.utils.TimeUtil;
 
 @Entity
 @Indexed
@@ -29,6 +29,11 @@ public class Scripts
   public Scripts()
   {
     this.createdOn = TimeUtil.getCurrentUTCDateWithTimeZone();
+  }
+  
+  public String getEncodedScript()
+  {
+    return tfScript;
   }
 
   public String getTfScript()

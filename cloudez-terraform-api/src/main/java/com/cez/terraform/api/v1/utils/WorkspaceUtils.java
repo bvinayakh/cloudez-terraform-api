@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform.utils;
+package com.cez.terraform.api.v1.utils;
 
 import java.io.File;
 import java.io.IOException;

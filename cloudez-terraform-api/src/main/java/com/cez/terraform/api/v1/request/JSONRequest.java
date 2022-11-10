@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform.request;
+package com.cez.terraform.api.v1.request;
 
 import java.io.IOException;
 import org.slf4j.Logger;

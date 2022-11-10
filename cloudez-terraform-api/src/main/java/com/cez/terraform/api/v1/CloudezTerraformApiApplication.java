@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform;
+package com.cez.terraform.api.v1;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,7 +56,7 @@ public class CloudezTerraformApiApplication
   public ApplicationRunner buildIndex(Indexer indexer) throws Exception
   {
     return (ApplicationArguments args) -> {
-      indexer.indexPersistedData("com.cez.api.v1.terraform.Scripts");
+      indexer.indexPersistedData("com.cez.terraform.api.v1.Scripts");
     };
   }
 }

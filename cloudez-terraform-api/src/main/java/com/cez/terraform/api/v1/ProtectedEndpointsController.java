@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform;
+package com.cez.terraform.api.v1;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -32,14 +32,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
-import com.cez.api.v1.terraform.async.TerraformApply;
-import com.cez.api.v1.terraform.request.JSONOM;
-import com.cez.api.v1.terraform.request.JSONRequest;
-import com.cez.api.v1.terraform.request.JSONResponse;
-import com.cez.api.v1.terraform.request.RequestObject;
-import com.cez.api.v1.terraform.utils.Executor;
-import com.cez.api.v1.terraform.utils.TaskIdGenerator;
-import com.cez.api.v1.terraform.utils.WorkspaceUtils;
+import com.cez.terraform.api.v1.async.TerraformApply;
+import com.cez.terraform.api.v1.request.JSONOM;
+import com.cez.terraform.api.v1.request.JSONRequest;
+import com.cez.terraform.api.v1.request.JSONResponse;
+import com.cez.terraform.api.v1.request.RequestObject;
+import com.cez.terraform.api.v1.utils.Executor;
+import com.cez.terraform.api.v1.utils.TaskIdGenerator;
+import com.cez.terraform.api.v1.utils.WorkspaceUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -91,7 +91,8 @@ public class ProtectedEndpointsController
       if (script.getDeploymentOwner().equalsIgnoreCase(owner));
       {
         ObjectNode content = mapper.createObjectNode();
-        content.putPOJO("encoded-script", script.getTfScript());
+        // content.putPOJO("encoded-script", script.getTfScript());
+        content.putPOJO("encoded-script", script.getEncodedScript());
         content.putPOJO("owner", script.getDeploymentOwner());
         content.putPOJO("name", script.getDeploymentName());
         content.putPOJO("status", script.getDeploymentStatus());

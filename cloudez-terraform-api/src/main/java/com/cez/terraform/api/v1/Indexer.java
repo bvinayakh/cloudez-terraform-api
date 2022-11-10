@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform;
+package com.cez.terraform.api.v1;
 
 import javax.persistence.EntityManager;
 import org.hibernate.search.mapper.orm.Search;

@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform.utils;
+package com.cez.terraform.api.v1.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -12,7 +12,7 @@ import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.cez.api.v1.terraform.request.JSONOM;
+import com.cez.terraform.api.v1.request.JSONOM;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Executor

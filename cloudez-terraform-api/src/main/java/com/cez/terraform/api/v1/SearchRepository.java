@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform;
+package com.cez.terraform.api.v1;
 
 import java.io.Serializable;
 import java.util.List;

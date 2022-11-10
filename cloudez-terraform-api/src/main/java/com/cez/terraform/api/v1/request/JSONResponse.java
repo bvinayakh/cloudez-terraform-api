@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform.request;
+package com.cez.terraform.api.v1.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

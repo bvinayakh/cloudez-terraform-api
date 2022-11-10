@@ -1,4 +1,4 @@
-package com.cez.api.v1.terraform.async;
+package com.cez.terraform.api.v1.async;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -11,16 +11,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.StringUtils;
-import com.cez.api.v1.terraform.DeploymentsRepository;
-import com.cez.api.v1.terraform.Deployments;
-import com.cez.api.v1.terraform.Scripts;
-import com.cez.api.v1.terraform.ScriptsRepository;
-import com.cez.api.v1.terraform.request.JSONOM;
-import com.cez.api.v1.terraform.request.JSONRequest;
-import com.cez.api.v1.terraform.request.JSONResponse;
-import com.cez.api.v1.terraform.request.RequestObject;
-import com.cez.api.v1.terraform.utils.Executor;
-import com.cez.api.v1.terraform.utils.WorkspaceUtils;
+import com.cez.terraform.api.v1.Deployments;
+import com.cez.terraform.api.v1.DeploymentsRepository;
+import com.cez.terraform.api.v1.Scripts;
+import com.cez.terraform.api.v1.ScriptsRepository;
+import com.cez.terraform.api.v1.request.JSONOM;
+import com.cez.terraform.api.v1.request.JSONRequest;
+import com.cez.terraform.api.v1.request.JSONResponse;
+import com.cez.terraform.api.v1.request.RequestObject;
+import com.cez.terraform.api.v1.utils.Executor;
+import com.cez.terraform.api.v1.utils.WorkspaceUtils;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 
