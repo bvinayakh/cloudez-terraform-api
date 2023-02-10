@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
-import javax.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -298,6 +297,7 @@ public class ProtectedEndpointsController
     return output;
   }
 
+  @SuppressWarnings("unchecked")
   @GetMapping("/search")
   public @ResponsePayload String search(@RequestParam(name = "keyword") String keyword, @RequestParam(name = "owner") String owner)
   {
@@ -315,7 +315,7 @@ public class ProtectedEndpointsController
         if (script.getDeploymentOwner().equalsIgnoreCase(owner))
         {
           HashMap<String, String> map = new HashMap<>();
-          map.put("script", Base64.getEncoder().encodeToString(script.getTfScript().getBytes()));
+          map.put("encoded-script", Base64.getEncoder().encodeToString(script.getTfScript().getBytes()));
           map.put("name", script.getDeploymentName());
           map.put("description", script.getDeploymentDescription());
           map.put("status", script.getDeploymentStatus());
